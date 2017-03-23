@@ -18,8 +18,8 @@ class Watch: UIView{
     var dayDate = 1
     let weekDays = ["SUN", "MON", "TUE","WED", "THU", "FRI", "SAT"]
     
-    let watchFaceWidth = 104
-    let watchFaceHeight = 130
+    let watchFaceWidth = 104*1.5
+    let watchFaceHeight = 130*1.5
     let watchImageView = WatchView()
     var watchImageCenterX : CGFloat = 0
     var watchImageCenterY : CGFloat = 0
@@ -66,7 +66,7 @@ class Watch: UIView{
     }
     func initializeDigitalTime(){
         digitalTime = UILabel(frame: CGRect(x: (0.6)*CGFloat(watchFaceWidth), y: (0.1)*CGFloat(watchFaceHeight), width: CGFloat(watchFaceWidth)/2,height: CGFloat(watchFaceHeight)/4))
-        digitalTime?.font = UIFont(name: "HelveticaNeue", size: 20)
+        digitalTime?.font = UIFont(name: "HelveticaNeue", size: 30)
         digitalTime?.textColor = UIColor.white
         digitalTime?.text = "00:00"
     }
@@ -74,7 +74,7 @@ class Watch: UIView{
         currentDate = UILabel(frame: CGRect(x: 0, y: 0, width: CGFloat(watchFaceWidth)/2, height: CGFloat(watchFaceHeight)/5))
         currentDate?.text = "-- --"
         currentDate?.textColor = UIColor.white
-        currentDate?.font = UIFont(name: "HelveticaNeue", size: 12)
+        currentDate?.font = UIFont(name: "HelveticaNeue", size: 18)
     }
     func updateTimeLabel() {
         let formatter = DateFormatter()
@@ -111,7 +111,7 @@ class Watch: UIView{
             x: watchImageCenterX,
             y:watchImageCenterY)
         planetNode.geometry = SCNSphere(radius: 1)
-        planetNode.geometry?.firstMaterial?.diffuse.contents = planets["neptune"]
+        planetNode.geometry?.firstMaterial?.diffuse.contents = planets["earth"]
         planetNode.geometry?.firstMaterial?.isDoubleSided = true
         scene.rootNode.addChildNode(planetNode)
         let action = SCNAction.rotate(by: 360*CGFloat((M_PI)/180.0), around:SCNVector3Make(0, 2, 0), duration: 8)
@@ -137,8 +137,9 @@ class Watch: UIView{
     }
 }
 
-let mainBackgroundYDimension = 500
-let mainBackgroundXDimension = 1000
+let mainBackgroundYDimension = 700
+let mainBackgroundXDimension = 700
 let mainBackground = Watch(width: CGFloat(mainBackgroundXDimension), height: CGFloat(mainBackgroundYDimension))
+//mainBackground.watchImageView
 
 PlaygroundPage.current.liveView = mainBackground

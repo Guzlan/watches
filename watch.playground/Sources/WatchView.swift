@@ -7,12 +7,12 @@ open class WatchView : UIView{
         let watchFace = UIImage(named: "faceSpace.png")
         let watchStrap = UIImage(named: "strapWhite.png")
         
-        let watchViewWidth = (watchFace?.size.width)!/3
-        let watchViewHeight = (watchStrap?.size.height)!/3
-        let watchBezelHeight = (watchFace?.size.height)!/3
-        let watchBezelWidth = (watchFace?.size.width)!/3
-        let watchStrapWidth = (watchStrap?.size.width)!/3
-        let watchStrapHeight = (watchStrap?.size.height)!/3
+        let watchViewWidth = (watchFace?.size.width)!/2
+        let watchViewHeight = (watchStrap?.size.height)!/2
+        let watchBezelHeight = (watchFace?.size.height)!/2
+        let watchBezelWidth = (watchFace?.size.width)!/2
+        let watchStrapWidth = (watchStrap?.size.width)!/2
+        let watchStrapHeight = (watchStrap?.size.height)!/2
         super.init(frame: CGRect(
             x: 0,
             y: 0,
