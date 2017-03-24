@@ -8,6 +8,9 @@ class Watch: UIView{
     
     var mainBackgroundXDimension = 0
     var mainBackgroundYDimension = 0
+    let leftView = UIView()
+    let rightView = UIView()
+    var mainStackView = UIStackView()
     var currentTime: Date {
         return Date()
     }
@@ -20,7 +23,7 @@ class Watch: UIView{
     
     let watchFaceWidth = 104*1.5
     let watchFaceHeight = 130*1.5
-    let watchImageView = WatchView()
+    var watchImageView = WatchView()
     var watchImageCenterX : CGFloat = 0
     var watchImageCenterY : CGFloat = 0
     var digitalTime : UILabel?
@@ -30,6 +33,8 @@ class Watch: UIView{
     let sceneView : SCNView?
     let scene  = SCNScene()
     let planetNode = SCNNode()
+ 
+
     
     public init(width : CGFloat, height : CGFloat){
         sceneView = SCNView(frame: CGRect(x:0,y:0,width:watchFaceWidth,height:watchFaceHeight))
@@ -43,9 +48,11 @@ class Watch: UIView{
         mainBackgroundXDimension = Int(width)
         mainBackgroundYDimension = Int(height)
         setBackgroundColor()
+        createSplitViews()
+        createWatchView()
+        createStackView()
         watchImageCenterX = watchImageView.frame.width/2 - 4
         watchImageCenterY = watchImageView.frame.height/2
-        createWatchView()
         initializeDigitalTime()
         initializeCurrentDate()
         createPlanetsDictionary()
@@ -57,12 +64,32 @@ class Watch: UIView{
             userInfo: nil,
             repeats: true)
     }
-    func createWatchView (){
-        self.addSubview(watchImageView)
-        watchImageView.center = CGPoint(
-            x: mainBackgroundXDimension/2,
-            y: mainBackgroundYDimension/2)
+    
+    func createStackView(){
+        mainStackView.frame = self.bounds
+        mainStackView.addArrangedSubview(leftView)
+        mainStackView.addArrangedSubview(rightView)
+        mainStackView.axis = .horizontal
+        mainStackView.distribution = .fillEqually
+        mainStackView.alignment = .center
+        mainStackView.translatesAutoresizingMaskIntoConstraints = true
+        mainStackView.spacing = 5
         
+        self.addSubview(mainStackView)
+        
+    }
+    
+    func createWatchView (){
+        rightView.addSubview(watchImageView)
+        watchImageView.center = (watchImageView.superview?.center)!
+    }
+    func createSplitViews(){
+        leftView.frame = CGRect(x:0, y:0, width:mainBackgroundXDimension/2, height:mainBackgroundYDimension)
+        rightView.frame = CGRect(x:0, y:0, width:mainBackgroundXDimension/2, height:mainBackgroundYDimension)
+        leftView.heightAnchor.constraint(equalToConstant: self.bounds.height).isActive = true
+        rightView.heightAnchor.constraint(equalToConstant: self.bounds.height).isActive = true
+        leftView.widthAnchor.constraint(equalToConstant: self.bounds.width/2).isActive = true
+        rightView.widthAnchor.constraint(equalToConstant: self.bounds.width/2).isActive = true
     }
     func initializeDigitalTime(){
         digitalTime = UILabel(frame: CGRect(x: (0.6)*CGFloat(watchFaceWidth), y: (0.1)*CGFloat(watchFaceHeight), width: CGFloat(watchFaceWidth)/2,height: CGFloat(watchFaceHeight)/4))
