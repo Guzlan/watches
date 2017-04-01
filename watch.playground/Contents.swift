@@ -38,6 +38,8 @@ class Watch: UIView, UICollectionViewDelegateFlowLayout, UICollectionViewDataSou
     
     var musicFace : MusicFace?
     
+    var eventFace : EventFace?
+    
     var planetNamesOrder = [String]()
     
     var planets = [String: UIImage]()
@@ -47,6 +49,11 @@ class Watch: UIView, UICollectionViewDelegateFlowLayout, UICollectionViewDataSou
     var atomCollectionView : AtomFace?
     
     var musicCollectionView : UIImageView?
+    
+    var eventCollectionView : UIImageView?
+    
+    var lastSelectedCollectionCellIndex : IndexPath!
+    
     
     
     var cellLabels = [UILabel]()
@@ -87,6 +94,9 @@ class Watch: UIView, UICollectionViewDelegateFlowLayout, UICollectionViewDataSou
         
         mainBackgroundXDimension = Int(width)
         mainBackgroundYDimension = Int(height)
+        
+        self.layer.borderColor = UIColor.black.cgColor
+        self.layer.borderWidth = 1
         setBackgroundColor()
         
         createSplitViews()
@@ -96,6 +106,7 @@ class Watch: UIView, UICollectionViewDelegateFlowLayout, UICollectionViewDataSou
         createPlanetsCollectionViews()
         createAtomCollectionView()
         createMusicCollectionView()
+        createEventCollectionView()
         createCollectionView()
         createStackViews()
         watchImageCenterX = watchImageView.frame.width/2 - 4
@@ -105,6 +116,7 @@ class Watch: UIView, UICollectionViewDelegateFlowLayout, UICollectionViewDataSou
         initializeAtomScene()
         initializePlanetScene()
         initializeMusicFace()
+        initializeEventFace()
         tryTimerD()
     }
     
@@ -154,8 +166,8 @@ class Watch: UIView, UICollectionViewDelegateFlowLayout, UICollectionViewDataSou
         rightView.heightAnchor.constraint(equalToConstant: self.bounds.height).isActive = true
         leftView.widthAnchor.constraint(equalToConstant: self.bounds.width/2).isActive = true
         rightView.widthAnchor.constraint(equalToConstant: self.bounds.width/2).isActive = true
-        rightView.layer.borderColor = UIColor.lightGray.cgColor
-        rightView.layer.borderWidth = 1
+        leftView.layer.borderColor = UIColor.black.cgColor
+        leftView.layer.borderWidth = 1
         //createLeftTopButtomViews()
         createLeftViewTitleLabels()
     }
@@ -163,15 +175,19 @@ class Watch: UIView, UICollectionViewDelegateFlowLayout, UICollectionViewDataSou
     func createCollectionView(){
         let layout: UICollectionViewFlowLayout = UICollectionViewFlowLayout()
         layout.sectionInset = UIEdgeInsets(top: 20, left: 10, bottom: 10, right: 10)
-        layout.itemSize = CGSize(width: 100, height: 120)
-        collectionView = UICollectionView(frame: CGRect(x:0, y:0, width:mainBackgroundXDimension/2, height:mainBackgroundYDimension/2), collectionViewLayout: layout)
+        layout.itemSize = CGSize(width: 100, height: 125)
+        collectionView = UICollectionView(frame: CGRect(x:0, y:0, width:mainBackgroundXDimension/2, height:mainBackgroundYDimension * 6/10), collectionViewLayout: layout)
         collectionView.register(UICollectionViewCell.self, forCellWithReuseIdentifier: "Cell")
         collectionView.dataSource = self
         collectionView.delegate = self
-        collectionView.heightAnchor.constraint(equalToConstant: self.bounds.height/2).isActive = true
+        collectionView.heightAnchor.constraint(equalToConstant: self.bounds.height * 6/10).isActive = true
         collectionView.widthAnchor.constraint(equalToConstant: self.bounds.width/2).isActive = true
         collectionView.backgroundColor = UIColor.clear
         collectionView.allowsSelection = true
+        lastSelectedCollectionCellIndex = IndexPath(item: 0, section: 0)
+        let firstSelectedCell = collectionView.cellForItem(at: lastSelectedCollectionCellIndex)
+        firstSelectedCell?.layer.borderColor = UIColor.blue.cgColor
+        firstSelectedCell?.layer.borderWidth = 4
     }
     
     func numberOfSections(in collectionView: UICollectionView) -> Int {
@@ -205,20 +221,28 @@ class Watch: UIView, UICollectionViewDelegateFlowLayout, UICollectionViewDataSou
             cell.addSubview(musicCollectionView!)
             cell.addSubview(cellLabels[4])
         }else{
-            cell.backgroundColor = UIColor.orange
+            cell.addSubview(eventCollectionView!)
+            cell.addSubview(cellLabels[5])
         }
         return cell
     }
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        let previousCell = collectionView.cellForItem(at: lastSelectedCollectionCellIndex)
+        previousCell?.layer.borderColor = UIColor.clear.cgColor
+        let cell = collectionView.cellForItem(at: indexPath)
+        cell?.layer.borderColor = UIColor.blue.cgColor
+        cell?.layer.borderWidth = 4
+        lastSelectedCollectionCellIndex = indexPath
         if indexPath.item < 3 {
-            
             
             UIView.animate(withDuration: 1.0, delay: 0, options: .curveEaseOut, animations: {
                 self.sceneView?.alpha = 0.0
             }, completion: {[weak self] finished in
                 self?.changePlanetScene(index: indexPath.item)
             })
-
+            UIView.animate(withDuration: 1.0, delay: 0, options: .curveEaseOut, animations: {
+                self.eventFace?.alpha = 0.0
+            }, completion:nil)
             UIView.animate(withDuration: 1.0, delay: 0, options: .curveEaseOut, animations: {
                 self.atomFace?.alpha = 0.0
             }, completion:nil)
@@ -228,7 +252,6 @@ class Watch: UIView, UICollectionViewDelegateFlowLayout, UICollectionViewDataSou
                 self.musicFace?.alpha = 0.0
             }, completion:nil)
             
-          
             UIView.animate(withDuration: 1.0, delay: 0.0, options: .curveEaseIn, animations: {
                 self.sceneView?.alpha = 1.0
                 self.sceneView?.addSubview(self.currentDate!)
@@ -237,6 +260,9 @@ class Watch: UIView, UICollectionViewDelegateFlowLayout, UICollectionViewDataSou
         }else if indexPath.item == 3{
             UIView.animate(withDuration: 1.0, delay: 0, options: .curveEaseOut, animations: {
                 self.sceneView?.alpha = 0.0
+            }, completion: nil)
+            UIView.animate(withDuration: 1.0, delay: 0, options: .curveEaseOut, animations: {
+                self.eventFace?.alpha = 0.0
             }, completion: nil)
             UIView.animate(withDuration: 1.0, delay: 0, options: .curveEaseOut, animations: {
                 self.musicFace?.stopSound()
@@ -253,6 +279,9 @@ class Watch: UIView, UICollectionViewDelegateFlowLayout, UICollectionViewDataSou
                 self.sceneView?.alpha = 0.0
             }, completion: nil)
             UIView.animate(withDuration: 1.0, delay: 0, options: .curveEaseOut, animations: {
+                self.eventFace?.alpha = 0.0
+            }, completion: nil)
+            UIView.animate(withDuration: 1.0, delay: 0, options: .curveEaseOut, animations: {
                 self.atomFace?.alpha = 0.0
             }, completion:nil)
             UIView.animate(withDuration: 1.0, delay: 0, options: .curveEaseOut, animations: {
@@ -260,6 +289,22 @@ class Watch: UIView, UICollectionViewDelegateFlowLayout, UICollectionViewDataSou
                 self.musicFace?.addSubview(self.currentDate!)
                 self.musicFace?.addSubview(self.digitalTime!)
             }, completion: nil)
+        } else if indexPath.item == 5{
+            UIView.animate(withDuration: 1.0, delay: 0, options: .curveEaseOut, animations: {
+                self.sceneView?.alpha = 0.0
+            }, completion: nil)
+            UIView.animate(withDuration: 1.0, delay: 0, options: .curveEaseOut, animations: {
+                self.atomFace?.alpha = 0.0
+            }, completion:nil)
+            UIView.animate(withDuration: 1.0, delay: 0, options: .curveEaseOut, animations: {
+                self.musicFace?.alpha = 0.0
+            }, completion: nil)
+            UIView.animate(withDuration: 1.0, delay: 0, options: .curveEaseOut, animations: {
+                self.eventFace?.alpha = 1.0
+                self.eventFace?.addSubview(self.currentDate!)
+                self.eventFace?.addSubview(self.digitalTime!)
+            }, completion: nil)
+            
         }
         
     }
@@ -279,8 +324,6 @@ class Watch: UIView, UICollectionViewDelegateFlowLayout, UICollectionViewDataSou
         leftButtomView.layer.borderWidth = 2
         
         leftTopView.backgroundColor = UIColor.yellow
-        //leftButtomView.backgroundColor = UIColor.red
-        
         
     }
     
@@ -288,7 +331,7 @@ class Watch: UIView, UICollectionViewDelegateFlowLayout, UICollectionViewDataSou
     func createLeftViewTitleLabels(){
         let labelHeight = self.bounds.height/16
         let labelWidth = self.bounds.width/2
-        watchFacesLabel.text = "WATCH FACES"
+        watchFacesLabel.text = "Watch Faces"
         watchFacesLabel.textAlignment = .center
         watchFacesLabel.adjustsFontSizeToFitWidth = true
         watchFacesLabel.frame = CGRect(x: 0, y: 0, width: labelWidth , height: labelHeight)
@@ -298,7 +341,7 @@ class Watch: UIView, UICollectionViewDelegateFlowLayout, UICollectionViewDataSou
         watchFacesLabel.layer.borderWidth = 1
         watchFacesLabel.layer.borderColor = UIColor.lightGray.cgColor
         
-        watchCaseAndBandLabel.text = "WATCH CASES AND BANDS"
+        watchCaseAndBandLabel.text = "About Selected Face"
         watchCaseAndBandLabel.textAlignment = .center
         watchCaseAndBandLabel.adjustsFontSizeToFitWidth = true
         watchCaseAndBandLabel.frame = CGRect(x: 0, y: 0, width: labelWidth , height: labelHeight)
@@ -314,7 +357,6 @@ class Watch: UIView, UICollectionViewDelegateFlowLayout, UICollectionViewDataSou
         
     }
     func createLeftTopButtomStackViews(){
-        
         
         leftTopStackView.frame = leftTopView.frame
         leftTopStackView.axis = .vertical
@@ -393,7 +435,7 @@ class Watch: UIView, UICollectionViewDelegateFlowLayout, UICollectionViewDataSou
             x: watchImageCenterX,
             y:watchImageCenterY)
         planetNode.geometry = SCNSphere(radius: 1)
-        planetNode.geometry?.firstMaterial?.diffuse.contents = planets["earth"]
+        planetNode.geometry?.firstMaterial?.diffuse.contents = planets["mars"]
         planetNode.geometry?.firstMaterial?.isDoubleSided = true
         
         scene.rootNode.addChildNode(planetNode)
@@ -423,8 +465,15 @@ class Watch: UIView, UICollectionViewDelegateFlowLayout, UICollectionViewDataSou
             x: watchImageCenterX,
             y:watchImageCenterY)
         musicFace?.alpha = 0.0
-        //musicFace?.addSubview(currentDate!)
-        //musicFace?.addSubview(digitalTime!)
+    }
+    func initializeEventFace(){
+        eventFace = EventFace(width:CGFloat(watchFaceWidth), height: CGFloat(watchFaceHeight))
+        watchImageView.addSubview(eventFace!)
+        eventFace?.center = CGPoint(
+            x: watchImageCenterX,
+            y:watchImageCenterY)
+        eventFace?.alpha = 0.0
+        
     }
     func panGesture(_ panGesture: UIPanGestureRecognizer) {
         
@@ -440,7 +489,7 @@ class Watch: UIView, UICollectionViewDelegateFlowLayout, UICollectionViewDataSou
         rotationVector.y = x
         rotationVector.z = 0
         rotationVector.w = anglePan
-
+        
         DispatchQueue.main.async {[weak self] in
             SCNTransaction.begin()
             self?.planetNode.rotation = (self?.rotationVector)!
@@ -504,6 +553,12 @@ class Watch: UIView, UICollectionViewDelegateFlowLayout, UICollectionViewDataSou
         musicCollectionView?.backgroundColor = UIColor.black
         musicCollectionView?.setFAIconWithName(icon: .FAMusic, textColor: .white)
     }
+    func createEventCollectionView(){
+        eventCollectionView = UIImageView(frame: CGRect(x: 0, y: 0, width: 100, height: 100))
+        eventCollectionView?.backgroundColor = UIColor.black
+        eventCollectionView?.setFAIconWithName(icon: .FAIdBadge, textColor: .orange)
+        
+    }
     
     func createCollectionViewLabels(){
         let label1 = UILabel(frame: CGRect(x: 0, y: 100, width: 100, height: 25))
@@ -517,7 +572,7 @@ class Watch: UIView, UICollectionViewDelegateFlowLayout, UICollectionViewDataSou
         label3.text = "EARTH"
         label4.text = "ATOM"
         label5.text = "MUSIC"
-        label6.text = "MAPS"
+        label6.text = "EVENTS"
         label1.textAlignment = .center
         label2.textAlignment = .center
         label3.textAlignment = .center
@@ -542,7 +597,7 @@ class Watch: UIView, UICollectionViewDelegateFlowLayout, UICollectionViewDataSou
     }
 }
 
-let mainBackgroundYDimension = 700
+let mainBackgroundYDimension = 500
 let mainBackgroundXDimension = 700
 let mainBackground = Watch(width: CGFloat(mainBackgroundXDimension), height: CGFloat(mainBackgroundYDimension))
 //mainBackground.watchImageView
