@@ -2,7 +2,7 @@ import UIKit
 import SpriteKit
 
 
-open class AtomFace : UIView {
+open class AtomFace : UIView{
     var viewWidth = 0
     var viewHeight = 0
     
@@ -59,13 +59,8 @@ open class AtomFace : UIView {
     func createNucleus(){
         let nucleusWidth = nucleus?.size.width
         let nucleusHeight = nucleus?.size.height
-        //        let translation = CGAffineTransform(translationX: CGFloat(viewWidth/2)-nucleusWidth!/2, y: CGFloat(viewHeight/2)-nucleusHeight!/2)
         nucleus?.position = CGPoint(x: CGFloat(viewWidth/2), y: CGFloat(viewWidth/2))
         nucleus?.scale(to: CGSize(width: viewWidth/4, height: viewWidth/4))
-        
-        //        nucleus?.position = CGPoint(x: CGFloat(viewWidth/2)-nucleusWidth!/2, y: CGFloat(viewHeight/2)-nucleusHeight!/2)
-        //nucleus?.position = CGPoint(x:CGFloat(viewWidth/2)-nucleusWidth!/2, y: CGFloat(viewHeight/2)-nucleusHeight!/2))
-        
     }
     
     func createPaths(){

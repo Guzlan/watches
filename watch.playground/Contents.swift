@@ -36,6 +36,8 @@ class Watch: UIView, UICollectionViewDelegateFlowLayout, UICollectionViewDataSou
     
     var atomFace : AtomFace?
     
+    var musicFace : MusicFace?
+    
     var planetNamesOrder = [String]()
     
     var planets = [String: UIImage]()
@@ -43,6 +45,9 @@ class Watch: UIView, UICollectionViewDelegateFlowLayout, UICollectionViewDataSou
     var planetCellViews = [SCNView]()
     
     var atomCollectionView : AtomFace?
+    
+    var musicCollectionView : UIImageView?
+    
     
     var cellLabels = [UILabel]()
     
@@ -90,6 +95,7 @@ class Watch: UIView, UICollectionViewDelegateFlowLayout, UICollectionViewDataSou
         createCollectionViewLabels()
         createPlanetsCollectionViews()
         createAtomCollectionView()
+        createMusicCollectionView()
         createCollectionView()
         createStackViews()
         watchImageCenterX = watchImageView.frame.width/2 - 4
@@ -98,6 +104,7 @@ class Watch: UIView, UICollectionViewDelegateFlowLayout, UICollectionViewDataSou
         initializeCurrentDate()
         initializeAtomScene()
         initializePlanetScene()
+        initializeMusicFace()
         tryTimerD()
     }
     
@@ -194,6 +201,9 @@ class Watch: UIView, UICollectionViewDelegateFlowLayout, UICollectionViewDataSou
         }else if indexPath.item == 3 {
             cell.addSubview(atomCollectionView!)
             cell.addSubview(cellLabels[3])
+        }else if indexPath.item == 4 {
+            cell.addSubview(musicCollectionView!)
+            cell.addSubview(cellLabels[4])
         }else{
             cell.backgroundColor = UIColor.orange
         }
@@ -201,6 +211,7 @@ class Watch: UIView, UICollectionViewDelegateFlowLayout, UICollectionViewDataSou
     }
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         if indexPath.item < 3 {
+            
             
             UIView.animate(withDuration: 1.0, delay: 0, options: .curveEaseOut, animations: {
                 self.sceneView?.alpha = 0.0
@@ -211,6 +222,12 @@ class Watch: UIView, UICollectionViewDelegateFlowLayout, UICollectionViewDataSou
             UIView.animate(withDuration: 1.0, delay: 0, options: .curveEaseOut, animations: {
                 self.atomFace?.alpha = 0.0
             }, completion:nil)
+            
+            UIView.animate(withDuration: 1.0, delay: 0, options: .curveEaseOut, animations: {
+                self.musicFace?.stopSound()
+                self.musicFace?.alpha = 0.0
+            }, completion:nil)
+            
           
             UIView.animate(withDuration: 1.0, delay: 0.0, options: .curveEaseIn, animations: {
                 self.sceneView?.alpha = 1.0
@@ -222,12 +239,29 @@ class Watch: UIView, UICollectionViewDelegateFlowLayout, UICollectionViewDataSou
                 self.sceneView?.alpha = 0.0
             }, completion: nil)
             UIView.animate(withDuration: 1.0, delay: 0, options: .curveEaseOut, animations: {
+                self.musicFace?.stopSound()
+                self.musicFace?.alpha = 0.0
+            }, completion:nil)
+            UIView.animate(withDuration: 1.0, delay: 0, options: .curveEaseOut, animations: {
                 self.atomFace?.alpha = 1.0
                 self.atomFace?.addSubview(self.currentDate!)
                 self.atomFace?.addSubview(self.digitalTime!)
-                
+            }, completion: nil)
+            
+        } else if indexPath.item == 4{
+            UIView.animate(withDuration: 1.0, delay: 0, options: .curveEaseOut, animations: {
+                self.sceneView?.alpha = 0.0
+            }, completion: nil)
+            UIView.animate(withDuration: 1.0, delay: 0, options: .curveEaseOut, animations: {
+                self.atomFace?.alpha = 0.0
+            }, completion:nil)
+            UIView.animate(withDuration: 1.0, delay: 0, options: .curveEaseOut, animations: {
+                self.musicFace?.alpha = 1.0
+                self.musicFace?.addSubview(self.currentDate!)
+                self.musicFace?.addSubview(self.digitalTime!)
             }, completion: nil)
         }
+        
     }
     func changePlanetScene(index : Int){
         planetNode.geometry?.firstMaterial?.diffuse.contents = planets[planetNamesOrder[index]]
@@ -307,7 +341,7 @@ class Watch: UIView, UICollectionViewDelegateFlowLayout, UICollectionViewDataSou
         
     }
     func initializeDigitalTime(){
-        digitalTime = UILabel(frame: CGRect(x: (0.6)*CGFloat(watchFaceWidth), y: (0.1)*CGFloat(watchFaceHeight), width: CGFloat(watchFaceWidth)/2,height: CGFloat(watchFaceHeight)/4))
+        digitalTime = UILabel(frame: CGRect(x: CGFloat(watchFaceWidth/2), y: (0.1)*CGFloat(watchFaceHeight), width: CGFloat(watchFaceWidth)/2,height: CGFloat(watchFaceHeight)/4))
         digitalTime?.font = UIFont(name: "HelveticaNeue", size: 30)
         digitalTime?.textColor = UIColor.white
         digitalTime?.text = "00:00"
@@ -382,7 +416,16 @@ class Watch: UIView, UICollectionViewDelegateFlowLayout, UICollectionViewDataSou
         atomFace?.alpha = 0.0
         
     }
-    
+    func initializeMusicFace(){
+        musicFace = MusicFace(width: CGFloat(watchFaceWidth), height: CGFloat(watchFaceHeight))
+        watchImageView.addSubview(musicFace!)
+        musicFace?.center = CGPoint(
+            x: watchImageCenterX,
+            y:watchImageCenterY)
+        musicFace?.alpha = 0.0
+        //musicFace?.addSubview(currentDate!)
+        //musicFace?.addSubview(digitalTime!)
+    }
     func panGesture(_ panGesture: UIPanGestureRecognizer) {
         
         let translation = panGesture.translation(in: panGesture.view!)
@@ -397,23 +440,21 @@ class Watch: UIView, UICollectionViewDelegateFlowLayout, UICollectionViewDataSou
         rotationVector.y = x
         rotationVector.z = 0
         rotationVector.w = anglePan
-        var currentPivot =  SCNMatrix4()
-        var  changePivot =  SCNMatrix4()
+
         DispatchQueue.main.async {[weak self] in
             SCNTransaction.begin()
             self?.planetNode.rotation = (self?.rotationVector)!
-            currentPivot = (self?.planetNode.pivot)!
             SCNTransaction.commit()
             SCNTransaction.flush()
             
         }
         //getting the end angle of the swipe put into the instance variable
         if(panGesture.state == .ended) {
-            changePivot = SCNMatrix4Invert( (self.planetNode.transform))
             DispatchQueue.main.async {[weak self] in
                 
                 SCNTransaction.begin()
-                changePivot = SCNMatrix4Invert((self?.planetNode.transform)!)
+                let currentPivot = (self?.planetNode.pivot)!
+                let changePivot = SCNMatrix4Invert((self?.planetNode.transform)!)
                 self?.planetNode.pivot = SCNMatrix4Mult(changePivot, currentPivot)
                 self?.planetNode.transform = SCNMatrix4Identity
                 SCNTransaction.commit()
@@ -457,6 +498,13 @@ class Watch: UIView, UICollectionViewDelegateFlowLayout, UICollectionViewDataSou
     func createAtomCollectionView(){
         atomCollectionView = AtomFace(width: CGFloat(100), height: CGFloat(100))
     }
+    
+    func createMusicCollectionView(){
+        musicCollectionView = UIImageView(frame: CGRect(x: 0, y: 0, width: 100, height: 100))
+        musicCollectionView?.backgroundColor = UIColor.black
+        musicCollectionView?.setFAIconWithName(icon: .FAMusic, textColor: .white)
+    }
+    
     func createCollectionViewLabels(){
         let label1 = UILabel(frame: CGRect(x: 0, y: 100, width: 100, height: 25))
         let label2 = UILabel(frame: CGRect(x: 0, y: 100, width: 100, height: 25))
@@ -468,8 +516,8 @@ class Watch: UIView, UICollectionViewDelegateFlowLayout, UICollectionViewDataSou
         label2.text = "NEPTUNE"
         label3.text = "EARTH"
         label4.text = "ATOM"
-        label5.text = "MAPS"
-        label6.text = "MUSIC"
+        label5.text = "MUSIC"
+        label6.text = "MAPS"
         label1.textAlignment = .center
         label2.textAlignment = .center
         label3.textAlignment = .center
