@@ -61,8 +61,8 @@ class Watch: UIView, UICollectionViewDelegateFlowLayout, UICollectionViewDataSou
     
     var lastSelectedCollectionCellIndex : IndexPath!
     
-    var action : SCNAction!
-    var repeatAction : SCNAction!
+   // var action : SCNAction!
+   // var repeatAction : SCNAction!
     
     var cellLabels = [UILabel]()
     
@@ -462,9 +462,9 @@ class Watch: UIView, UICollectionViewDelegateFlowLayout, UICollectionViewDataSou
         
         sceneView?.addSubview(currentDate!)
         sceneView?.addSubview(digitalTime!)
-        action = SCNAction.rotate(by: 360*CGFloat((M_PI)/180.0), around:SCNVector3Make(0, 2, 0), duration: 8)
-        repeatAction = SCNAction.repeatForever(action)
-        planetNode.runAction(repeatAction)
+        //let tempAction = SCNAction.rotate(by: 360*CGFloat((Double.pi)/180.0), around:SCNVector3Make(0, 2, 0), duration: 8)
+        //let tempRepeatAction = SCNAction.repeatForever(tempAction)
+        //planetNode.runAction(tempRepeatAction)
        
         let panRecognizer = UIPanGestureRecognizer(target: self, action: #selector(self.panGesture(_:)))
         sceneView?.addGestureRecognizer(panRecognizer)
@@ -509,7 +509,7 @@ class Watch: UIView, UICollectionViewDelegateFlowLayout, UICollectionViewDataSou
         let x = Float(translation.x)
         let y = Float(-translation.y)
         
-        let anglePan = sqrt(pow(x,2)+pow(y,2))*(Float)(M_PI)/180.0
+        let anglePan = sqrt(pow(x,2)+pow(y,2))*(Float)(Double.pi)/180.0
         
         
         rotationVector.x = -y
@@ -518,7 +518,7 @@ class Watch: UIView, UICollectionViewDelegateFlowLayout, UICollectionViewDataSou
         rotationVector.w = anglePan
         
         DispatchQueue.main.async {[weak self] in
-            self?.planetNode.removeAllActions()
+//            self?.planetNode.removeAllActions()
             SCNTransaction.begin()
             self?.planetNode.rotation = (self?.rotationVector)!
             SCNTransaction.commit()
@@ -529,8 +529,16 @@ class Watch: UIView, UICollectionViewDelegateFlowLayout, UICollectionViewDataSou
         if(panGesture.state == .ended) {
             
             DispatchQueue.main.async {[weak self] in
-
-                self?.planetNode.runAction((self?.repeatAction)!)
+                SCNTransaction.begin()
+                let currentPivot = (self?.planetNode.pivot)!
+                let changePivot = SCNMatrix4Invert((self?.planetNode.transform)!)
+                self?.planetNode.pivot = SCNMatrix4Mult(changePivot, currentPivot)
+                self?.planetNode.transform = SCNMatrix4Identity
+                  SCNTransaction.commit()
+                SCNTransaction.flush()
+//  
+                
+//                self?.planetNode.runAction((self?.repeatAction)!)
            }
         }
         
@@ -560,9 +568,11 @@ class Watch: UIView, UICollectionViewDelegateFlowLayout, UICollectionViewDataSou
             tempPlanetNode.geometry?.firstMaterial?.diffuse.contents = planet.value
             tempPlanetNode.geometry?.firstMaterial?.isDoubleSided = true
             tempScene.rootNode.addChildNode(tempPlanetNode)
-            let tempAction = SCNAction.rotate(by: 360*CGFloat((M_PI)/180.0), around:SCNVector3Make(0, 2, 0), duration: 8)
+            let tempAction = SCNAction.rotate(by: 360*CGFloat((Double.pi)/180.0), around:SCNVector3Make(0, 2, 0), duration: 8)
             let tempRepeatAction = SCNAction.repeatForever(tempAction)
+             DispatchQueue.main.async {[weak self] in
             tempPlanetNode.runAction(tempRepeatAction)
+            }
             planetCellViews.append(tempSceneView)
             
         }

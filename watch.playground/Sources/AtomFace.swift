@@ -57,8 +57,6 @@ open class AtomFace : UIView{
     }
     
     func createNucleus(){
-        let nucleusWidth = nucleus?.size.width
-        let nucleusHeight = nucleus?.size.height
         nucleus?.position = CGPoint(x: CGFloat(viewWidth/2), y: CGFloat(viewWidth/2))
         nucleus?.scale(to: CGSize(width: viewWidth/4, height: viewWidth/4))
     }
@@ -68,7 +66,7 @@ open class AtomFace : UIView{
         path2 = UIBezierPath(ovalIn: CGRect(x: 0, y: 0, width: viewWidth-2, height: viewWidth/3))
         path3 = UIBezierPath(ovalIn: CGRect(x: 0, y: 0, width: viewWidth-2, height: viewWidth/3))
         
-        UIColor.clear.setFill()
+        //UIColor.clear.setFill()
         
         path1?.lineWidth = 2
         path1?.fill()
@@ -88,8 +86,8 @@ open class AtomFace : UIView{
         let translation1 = CGAffineTransform(translationX: 1, y: CGFloat((viewWidth/2)-(viewWidth/6)))
         let translation2 = CGAffineTransform(translationX: CGFloat((viewWidth/2)), y: CGFloat(viewWidth/2))
         
-        let rotationFor2 = CGAffineTransform(rotationAngle: CGFloat(M_PI/3.2))
-        let rotationFor3 = CGAffineTransform(rotationAngle: CGFloat(-1*M_PI/3.2))
+        let rotationFor2 = CGAffineTransform(rotationAngle: CGFloat(Double.pi/3.2))
+        let rotationFor3 = CGAffineTransform(rotationAngle: CGFloat(-1*Double.pi/3.2))
         
         
         path1?.apply(translation1)
@@ -125,13 +123,16 @@ open class AtomFace : UIView{
         let pathNode2 = SKShapeNode(path: (path2?.cgPath)!)
         let pathNode3 = SKShapeNode(path: (path3?.cgPath)!)
         
-        pathNode1.strokeColor = UIColor.red
-        pathNode2.strokeColor = UIColor.red
-        pathNode3.strokeColor = UIColor.red
+        
+       
         
         scene?.addChild(pathNode1)
         scene?.addChild(pathNode2)
         scene?.addChild(pathNode3)
+        
+        pathNode1.strokeColor = UIColor.red
+        pathNode2.strokeColor = UIColor.red
+        pathNode3.strokeColor = UIColor.red
         
         
     }

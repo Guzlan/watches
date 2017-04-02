@@ -60,11 +60,9 @@ open class MusicFace : UIView,AVAudioPlayerDelegate{
     }
     func initializePlayButton(){
         let width = CGFloat(viewWidth/2)
-        let height = CGFloat(viewWidth*3/10)
         playPauseButton = UIButton(frame: CGRect(x: width, y: CGFloat(viewHeight-viewWidth/2), width: width, height: width))
         playPauseButton?.setFAIcon(icon: .FAPlay, iconSize:60, forState: .normal)
         playPauseButton?.setFATitleColor(color: UIColor.white)
-        //playPauseButton?.backgroundColor = UIColor.red
         playPauseButton?.addTarget(self, action: #selector(playSound), for: .touchUpInside)
         self.addSubview(playPauseButton!)
     }
