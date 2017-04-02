@@ -13,6 +13,7 @@ class Watch: UIView, UICollectionViewDelegateFlowLayout, UICollectionViewDataSou
     /* VIEWS */
     let leftView = UIView()
     let rightView = UIView()
+    var effectView : UIVisualEffectView!
     var mainStackView = UIStackView()
     var leftStackView = UIStackView()
     let leftTopView = UIView()
@@ -34,6 +35,8 @@ class Watch: UIView, UICollectionViewDelegateFlowLayout, UICollectionViewDataSou
     let scene  = SCNScene()
     let planetNode = SCNNode()
     
+    var modalView : ModalView!
+    
     var atomFace : AtomFace?
     
     var musicFace : MusicFace?
@@ -46,6 +49,10 @@ class Watch: UIView, UICollectionViewDelegateFlowLayout, UICollectionViewDataSou
     
     var planetCellViews = [SCNView]()
     
+    var faceDescriptions = [NSMutableAttributedString]()
+    
+    var descriptionLabel : UILabel!
+    
     var atomCollectionView : AtomFace?
     
     var musicCollectionView : UIImageView?
@@ -54,7 +61,8 @@ class Watch: UIView, UICollectionViewDelegateFlowLayout, UICollectionViewDataSou
     
     var lastSelectedCollectionCellIndex : IndexPath!
     
-    
+    var action : SCNAction!
+    var repeatAction : SCNAction!
     
     var cellLabels = [UILabel]()
     
@@ -98,11 +106,13 @@ class Watch: UIView, UICollectionViewDelegateFlowLayout, UICollectionViewDataSou
         self.layer.borderColor = UIColor.black.cgColor
         self.layer.borderWidth = 1
         setBackgroundColor()
+    
         
         createSplitViews()
         createWatchView()
         createPlanetsDictionary()
         createCollectionViewLabels()
+        
         createPlanetsCollectionViews()
         createAtomCollectionView()
         createMusicCollectionView()
@@ -117,7 +127,12 @@ class Watch: UIView, UICollectionViewDelegateFlowLayout, UICollectionViewDataSou
         initializePlanetScene()
         initializeMusicFace()
         initializeEventFace()
+        createDescriptions()
+        createDescriptionLabel()
         tryTimerD()
+        blurBackground()
+        initializeModalView()
+    
     }
     
     
@@ -217,12 +232,12 @@ class Watch: UIView, UICollectionViewDelegateFlowLayout, UICollectionViewDataSou
         }else if indexPath.item == 3 {
             cell.addSubview(atomCollectionView!)
             cell.addSubview(cellLabels[3])
-        }else if indexPath.item == 4 {
+        }else if indexPath.item == 5 {
             cell.addSubview(musicCollectionView!)
-            cell.addSubview(cellLabels[4])
+            cell.addSubview(cellLabels[5])
         }else{
             cell.addSubview(eventCollectionView!)
-            cell.addSubview(cellLabels[5])
+            cell.addSubview(cellLabels[4])
         }
         return cell
     }
@@ -233,8 +248,9 @@ class Watch: UIView, UICollectionViewDelegateFlowLayout, UICollectionViewDataSou
         cell?.layer.borderColor = UIColor.blue.cgColor
         cell?.layer.borderWidth = 4
         lastSelectedCollectionCellIndex = indexPath
+       
         if indexPath.item < 3 {
-            
+             descriptionLabel.attributedText = faceDescriptions[0]
             UIView.animate(withDuration: 1.0, delay: 0, options: .curveEaseOut, animations: {
                 self.sceneView?.alpha = 0.0
             }, completion: {[weak self] finished in
@@ -258,6 +274,7 @@ class Watch: UIView, UICollectionViewDelegateFlowLayout, UICollectionViewDataSou
                 self.sceneView?.addSubview(self.digitalTime!)
             }, completion: nil)
         }else if indexPath.item == 3{
+             descriptionLabel.attributedText = faceDescriptions[1]
             UIView.animate(withDuration: 1.0, delay: 0, options: .curveEaseOut, animations: {
                 self.sceneView?.alpha = 0.0
             }, completion: nil)
@@ -274,7 +291,8 @@ class Watch: UIView, UICollectionViewDelegateFlowLayout, UICollectionViewDataSou
                 self.atomFace?.addSubview(self.digitalTime!)
             }, completion: nil)
             
-        } else if indexPath.item == 4{
+        } else if indexPath.item == 5{
+             descriptionLabel.attributedText = faceDescriptions[3]
             UIView.animate(withDuration: 1.0, delay: 0, options: .curveEaseOut, animations: {
                 self.sceneView?.alpha = 0.0
             }, completion: nil)
@@ -289,7 +307,8 @@ class Watch: UIView, UICollectionViewDelegateFlowLayout, UICollectionViewDataSou
                 self.musicFace?.addSubview(self.currentDate!)
                 self.musicFace?.addSubview(self.digitalTime!)
             }, completion: nil)
-        } else if indexPath.item == 5{
+        } else if indexPath.item == 4{
+             descriptionLabel.attributedText = faceDescriptions[2]
             UIView.animate(withDuration: 1.0, delay: 0, options: .curveEaseOut, animations: {
                 self.sceneView?.alpha = 0.0
             }, completion: nil)
@@ -331,7 +350,7 @@ class Watch: UIView, UICollectionViewDelegateFlowLayout, UICollectionViewDataSou
     func createLeftViewTitleLabels(){
         let labelHeight = self.bounds.height/16
         let labelWidth = self.bounds.width/2
-        watchFacesLabel.text = "Watch Faces"
+        watchFacesLabel.text = "Select a Watch Face"
         watchFacesLabel.textAlignment = .center
         watchFacesLabel.adjustsFontSizeToFitWidth = true
         watchFacesLabel.frame = CGRect(x: 0, y: 0, width: labelWidth , height: labelHeight)
@@ -443,7 +462,10 @@ class Watch: UIView, UICollectionViewDelegateFlowLayout, UICollectionViewDataSou
         
         sceneView?.addSubview(currentDate!)
         sceneView?.addSubview(digitalTime!)
-        
+        action = SCNAction.rotate(by: 360*CGFloat((M_PI)/180.0), around:SCNVector3Make(0, 2, 0), duration: 8)
+        repeatAction = SCNAction.repeatForever(action)
+        planetNode.runAction(repeatAction)
+       
         let panRecognizer = UIPanGestureRecognizer(target: self, action: #selector(self.panGesture(_:)))
         sceneView?.addGestureRecognizer(panRecognizer)
         
@@ -475,6 +497,11 @@ class Watch: UIView, UICollectionViewDelegateFlowLayout, UICollectionViewDataSou
         eventFace?.alpha = 0.0
         
     }
+    func initializeModalView(){
+        modalView = ModalView(width: 400, height: 200)
+        modalView.center = self.center
+        self.addSubview(modalView)
+    }
     func panGesture(_ panGesture: UIPanGestureRecognizer) {
         
         let translation = panGesture.translation(in: panGesture.view!)
@@ -491,6 +518,7 @@ class Watch: UIView, UICollectionViewDelegateFlowLayout, UICollectionViewDataSou
         rotationVector.w = anglePan
         
         DispatchQueue.main.async {[weak self] in
+            self?.planetNode.removeAllActions()
             SCNTransaction.begin()
             self?.planetNode.rotation = (self?.rotationVector)!
             SCNTransaction.commit()
@@ -499,16 +527,11 @@ class Watch: UIView, UICollectionViewDelegateFlowLayout, UICollectionViewDataSou
         }
         //getting the end angle of the swipe put into the instance variable
         if(panGesture.state == .ended) {
+            
             DispatchQueue.main.async {[weak self] in
-                
-                SCNTransaction.begin()
-                let currentPivot = (self?.planetNode.pivot)!
-                let changePivot = SCNMatrix4Invert((self?.planetNode.transform)!)
-                self?.planetNode.pivot = SCNMatrix4Mult(changePivot, currentPivot)
-                self?.planetNode.transform = SCNMatrix4Identity
-                SCNTransaction.commit()
-                SCNTransaction.flush()
-            }
+
+                self?.planetNode.runAction((self?.repeatAction)!)
+           }
         }
         
         
@@ -556,7 +579,7 @@ class Watch: UIView, UICollectionViewDelegateFlowLayout, UICollectionViewDataSou
     func createEventCollectionView(){
         eventCollectionView = UIImageView(frame: CGRect(x: 0, y: 0, width: 100, height: 100))
         eventCollectionView?.backgroundColor = UIColor.black
-        eventCollectionView?.setFAIconWithName(icon: .FAIdBadge, textColor: .orange)
+        eventCollectionView?.setFAIconWithName(icon: .FAIdCard, textColor: .orange)
         
     }
     
@@ -584,13 +607,65 @@ class Watch: UIView, UICollectionViewDelegateFlowLayout, UICollectionViewDataSou
         cellLabels.append(label2)
         cellLabels.append(label3)
         cellLabels.append(label4)
-        cellLabels.append(label5)
         cellLabels.append(label6)
+        cellLabels.append(label5)
+        
         
         for cell in cellLabels{
             cell.backgroundColor = UIColor(colorLiteralRed: 706, green: 710, blue: 710, alpha: 0.7)
         }
         
+    }
+    func createDescriptions(){
+        let planetDescription = NSMutableAttributedString(string: "The Apple Watch has an Astronomy face, but it's limited to Earth and Moon. Here I show the power of SceneKit to create beautiful 3D rendered planets.", attributes: [NSFontAttributeName: UIFont.systemFont(ofSize: 16)])
+    planetDescription.append(NSMutableAttributedString(string: "Try pan gesture!", attributes: [NSFontAttributeName: UIFont.boldSystemFont(ofSize: 16)]))
+            let atomDescription = NSMutableAttributedString(string: "The simplified atom model was one of my favorite animations growing up as a kid⚛. I decided to create a watch face for it using SpriteKit. Imagine the personally customizable faces that can be made using SpriteKit!",attributes: [NSFontAttributeName: UIFont.systemFont(ofSize: 16)])
+        let musicDescription = NSMutableAttributedString(string: "Having a music player face similar to an iPod shuffle would be great if you're a music enthusiast!", attributes: [NSFontAttributeName: UIFont.systemFont(ofSize: 16)])
+        musicDescription.append(NSMutableAttributedString(string: " I do not own the copyrights to Supersonic by Oasis.(Great song btw🤘)", attributes: [NSFontAttributeName: UIFont.boldSystemFont(ofSize: 16)]))
+        
+        let eventDescription = NSMutableAttributedString(string: "Imagine having event faces that are exclusively released to certain events. They would also tell you timings of up coming things happening during the event (I made this one for wwdc 😉). ", attributes: [NSFontAttributeName: UIFont.systemFont(ofSize: 16)])
+        eventDescription.append(NSMutableAttributedString(string: "Click the badge card to flip card and show QR code to scan at doors!", attributes: [NSFontAttributeName: UIFont.boldSystemFont(ofSize: 16)]))
+        
+        faceDescriptions.append(planetDescription)
+        faceDescriptions.append(atomDescription)
+        faceDescriptions.append(eventDescription)
+        faceDescriptions.append(musicDescription)
+        
+        
+    }
+    func blurBackground(){
+        let blurEffect = UIBlurEffect(style: .regular)
+        effectView = UIVisualEffectView(effect: blurEffect)
+        effectView.frame = self.frame
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(hideAbout))
+        tapGesture.numberOfTapsRequired = 1
+        effectView.addGestureRecognizer(tapGesture)
+        self.addSubview(effectView)
+    }
+    func createDescriptionLabel(){
+        descriptionLabel = UILabel(frame: CGRect(x: 0, y: 0, width:CGFloat(mainBackgroundXDimension/2)
+            , height: CGFloat(mainBackgroundYDimension * 11/40)))
+            descriptionLabel.lineBreakMode = .byWordWrapping
+            descriptionLabel.numberOfLines = 100
+        descriptionLabel.textAlignment = .center
+        descriptionLabel.textColor = UIColor.white
+        descriptionLabel.heightAnchor.constraint(equalToConstant: CGFloat(mainBackgroundYDimension * 11/40)).isActive = true
+        descriptionLabel.widthAnchor.constraint(equalToConstant: CGFloat(mainBackgroundXDimension/2)).isActive = true
+        descriptionLabel.backgroundColor = UIColor.black
+          descriptionLabel.attributedText = faceDescriptions[0]
+        leftStackView.addArrangedSubview(descriptionLabel)
+    }
+    func hideAbout(){
+        UIView.animate(withDuration: 1.0, delay: 0, options: .curveEaseOut, animations: {
+            self.effectView?.alpha = 0.0
+        }, completion: { [weak self] finished in
+            self?.effectView.removeFromSuperview()
+        })
+        UIView.animate(withDuration: 1.0, delay: 0, options: .curveEaseOut, animations: {
+            self.modalView?.alpha = 0.0
+        }, completion: { [weak self] finished in
+            self?.modalView.removeFromSuperview()
+        })
     }
     required public init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
